@@ -16,49 +16,56 @@ def edge(i, j):
 seed = 15
 p = 0.2
 n = 1000
+
+# for every vertex v, store its neighbours that come before v
+nb = []
+m = 0   # total number of edges
+for v in range(n):
+    nb.append([])
+    for u in range(v):
+        if edge(u, v) == 1:
+            nb[v].append(u)
+            m = m + 1
+
+def pick(v, k, grp):
+    # sets of the neighbours of v that are already placed
+    ng = []
+    for u in nb[v]:
+        ng.append(grp[u])
+
+    # try every set and pick the one that cuts the most edges
+    best = 0
+    bgain = -1
+    for s in range(k):
+        gain = len(ng) - ng.count(s)
+        if gain > bgain:
+            bgain = gain
+            best = s
+    return best, bgain
+
+def greedy(k):
+    grp = [0] * n   # grp[v] = the set that vertex v is put in
+    cut = 0         # number of edges in the cut
+    for v in range(n):
+        best, bgain = pick(v, k, grp)
+        grp[v] = best
+        cut = cut + bgain
+    return cut
+
+ks = []
+algs = []
 k = 2
-alg = 0
-
-neighbours = []
-tot_edges = 0
-for i in range(n):
-    neighbours.append([])
-    for u in range(i):
-        if edge(u, i) == 1:
-            neighbours[i].append(u)
-            tot_edges = tot_edges + 1
-
-def greedy_kcut(k):
-    assigned_set = [0] * n
-    z = 0
-    for i in range(n):
-        neighbours_in_set = [0] * k
-        for u in neighbours[i]:
-            neighbours_in_set[assigned_set[u]] = neighbours_in_set[assigned_set[u]] + 1
-
-        chosen_set = 0
-        max_edges_added = -1
-        for s in range(k):
-            edges_added = len(neighbours[i]) - neighbours_in_set[s]
-            if edges_added > max_edges_added:
-                max_edges_added = edges_added
-                chosen_set = s
-
-        assigned_set[i] = chosen_set
-        z = z + max_edges_added
-    return z
-
-k_set = []
-alg_set = []
-while alg < tot_edges:
-    alg = greedy_kcut(k)
-    k_set.append(k)
-    alg_set.append(alg)
+while True:
+    alg = greedy(k)
+    ks.append(k)
+    algs.append(alg)
+    print("k =", k, " ALG_k =", alg)
+    if alg == m:
+        break
     k = k + 1
 
-plt.plot(k_set, alg_set, "o-")
+plt.plot(ks, algs)
 plt.xlabel("k")
 plt.ylabel("ALG_k")
-plt.title("Greedy k-cut")
-plt.savefig("kcut_plot.png")
+plt.savefig("greedy_kcut_plot.png")
 plt.show()
